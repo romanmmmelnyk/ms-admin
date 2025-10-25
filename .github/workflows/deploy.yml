@@ -21,6 +21,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          VITE_ADMIN_USERNAME: ${{ secrets.VITE_ADMIN_USERNAME }}
+          VITE_ADMIN_PASSWORD: ${{ secrets.VITE_ADMIN_PASSWORD }}
 
       - name: Prepare SSH
         run: |
@@ -38,7 +42,12 @@ jobs:
           rsync -az --delete -e "ssh -p ${{ secrets.SSH_PORT }}" \
             dist/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/"
 
-      - name: Reload Nginx
+      - name: Install PM2 and serve app
         run: |
           ssh -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "sudo systemctl reload nginx || true"
+            "cd ${{ secrets.DEPLOY_PATH }} && \
+             npm install -g pm2 serve 2>/dev/null || true && \
+             pm2 delete ms-admin 2>/dev/null || true && \
+             pm2 serve . 9200 --name ms-admin --spa && \
+             pm2 startup systemd -u $USER --hp $HOME 2>/dev/null || true && \
+             pm2 save"

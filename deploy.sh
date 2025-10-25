@@ -22,12 +22,26 @@ npm ci
 echo "🔨 Building application..."
 npm run build
 
-# Copy built files to web server directory
-echo "📋 Copying files to web directory..."
-sudo cp -r dist/* /var/www/html/
+# Install PM2 and serve if not already installed
+echo "📦 Setting up PM2..."
+npm install -g pm2 serve 2>/dev/null || true
 
-# Reload nginx (adjust based on your web server)
-echo "🔄 Reloading web server..."
-sudo systemctl reload nginx
+# Stop existing PM2 process if running
+echo "🛑 Stopping existing PM2 process..."
+pm2 delete ms-admin 2>/dev/null || true
+
+# Copy built files to current directory (already done by rsync in CI/CD)
+echo "📋 Files already in place via rsync..."
+
+# Start PM2 service on port 9200
+echo "🚀 Starting PM2 service on port 9200..."
+pm2 serve . 9200 --name ms-admin --spa
+
+# Setup PM2 to start on boot
+echo "⚙️ Setting up PM2 startup..."
+pm2 startup systemd -u $USER --hp $HOME 2>/dev/null || true
+pm2 save
+
+echo "🌐 App is now running on port 9200"
 
 echo "✅ Deployment completed successfully!"
