@@ -49,6 +49,11 @@ const routes = [
           component: () => import('../views/Hosting.vue')
         },
         {
+          path: '/models',
+          name: 'Models',
+          component: () => import('../views/Models.vue')
+        },
+        {
           path: '/documentation',
           name: 'Documentation',
           component: () => import('../views/Documentation.vue')
@@ -95,6 +100,7 @@ const validRoutes = [
   '/domains',
   '/ports',
   '/hosting',
+  '/models',
   '/documentation',
   '/documentation/getting-started',
   '/documentation/api-reference',
